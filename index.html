@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>loveless</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="stylesheet" href="styles.css" />
+  <!-- easter egg: greets anyone who opens devtools / right-clicks -->
+  <script src="troll.js"></script>
+  <!-- three.js as ES modules -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <!-- 3D album cover renders here -->
+  <canvas id="scene"></canvas>
+
+  <!-- dreamy film-grain + vignette overlays -->
+  <div class="grain" aria-hidden="true"></div>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <!-- click-to-begin hint (fades out after first interaction) -->
+  <div id="hint" class="hint">click anywhere to begin</div>
+
+  <!-- ABOUT ME — edit the text + links below -->
+  <main class="about">
+    <h1 class="name">madcito</h1>
+    <p class="meta">23 &middot; b. july 6 &middot; cs</p>
+    <p class="blurb">always chasing a new sound.</p>
+    <nav class="links">
+      <!-- EDIT: paste your real profile URLs -->
+      <a href="https://www.last.fm/user/madcit0" target="_blank" rel="noopener">last.fm</a>
+      <a href="https://open.spotify.com/user/21kdxmkfccdczq7m6li5j3kva" target="_blank" rel="noopener">spotify</a>
+    </nav>
+  </main>
+
+  <!-- audio control (bottom corner) -->
+  <button id="sound" class="sound" aria-label="toggle sound" title="sound">
+    <span class="sound-on">&#9834; on</span>
+    <span class="sound-off">&#9834; off</span>
+  </button>
+
+  <!-- EDIT: drop your file at assets/loveless.mp3 (loops, fades in from low) -->
+  <audio id="track" src="assets/loveless.mp3" loop preload="auto"></audio>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>
