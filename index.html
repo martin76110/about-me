@@ -29,6 +29,13 @@
   <!-- click-to-begin hint (fades out after first interaction) -->
   <div id="hint" class="hint">click anywhere to begin</div>
 
+  <!-- now-showing song title (top center) -->
+  <div id="track-title" class="track-title" aria-live="polite"></div>
+
+  <!-- playlist arrows: prev (left) / next (right) song -->
+  <button id="prev" class="nav nav-prev hidden" aria-label="previous song" title="previous song">&#8249;</button>
+  <button id="next" class="nav nav-next" aria-label="next song" title="next song">&#8250;</button>
+
   <!-- ABOUT ME — edit the text + links below -->
   <main class="about">
     <h1 class="name">madcito</h1>
@@ -47,7 +54,7 @@
     <span class="sound-off">&#9834; off</span>
   </button>
 
-  <!-- EDIT: drop your file at assets/loveless.mp3 (loops, fades in from low) -->
+  <!-- src is set per-song by main.js (TRACKS[]); files live in assets/ -->
   <audio id="track" src="assets/loveless.mp3" loop preload="auto"></audio>
 
   <script type="module" src="main.js"></script>

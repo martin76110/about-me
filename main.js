@@ -7,10 +7,42 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 /* ------------------------------------------------------------------ *
  *  CONFIG — tweak these to taste
  * ------------------------------------------------------------------ */
-const COVER_URL   = 'assets/loveless.jpg'; // EDIT: drop your cover here
 const FADE_SECONDS = 8;                     // how long the volume ramp lasts
 const TARGET_VOLUME = 1.0;                   // final "actual sound level"
 const SPIN_SPEED  = 0.07;                    // radians/sec around Y (idle, no music)
+
+/* ------------------------------------------------------------------ *
+ *  THE PLAYLIST — flip between songs with the on-screen arrows.
+ *  Each entry brings its own cover, audio file and color theme; drop
+ *  the matching files in assets/ (missing files fall back gracefully).
+ * ------------------------------------------------------------------ */
+const TRACKS = [
+  {
+    id: 'sometimes',
+    title: 'sometimes',
+    artist: 'my bloody valentine',
+    cover: 'assets/loveless.jpg',
+    audio: 'assets/loveless.mp3',
+    theme: {
+      pink: '#e85b9c', haze: '#ffd9ec', bgGlow: '#3a0c22', bg: '#1a0610',
+      base: 0x2a0a18, baseEmissive: 0x6e1a3a,
+      halo: 0xe85b9c, key: 0xff8ec4, matEmissive: 0xe85b9c,
+    },
+  },
+  {
+    id: 'stars',
+    title: 'stars',
+    artist: 'hum',
+    cover: 'assets/little-dipper.jpg', // file on disk is named little-dipper.*
+    audio: 'assets/little-dipper.mp3',
+    theme: {
+      pink: '#5b9ce8', haze: '#d9ecff', bgGlow: '#0c223a', bg: '#06101a',
+      base: 0x0a182a, baseEmissive: 0x1a3a6e,
+      halo: 0x5b9ce8, key: 0x8ec4ff, matEmissive: 0x5b9ce8,
+    },
+  },
+];
+let trackIndex = 0; // which song is showing
 
 /* ------------------------------------------------------------------ *
  *  RENDERER + SCENE
@@ -146,34 +178,42 @@ const halo = new THREE.Mesh(new THREE.CircleGeometry(SIZE * 0.95, 48), haloMat);
 halo.position.z = -0.15;
 scene.add(halo);
 
-/* ---- load cover texture, fall back to a procedural placeholder ---- */
+/* ---- load a track's cover texture, fall back to a placeholder ---- */
 const loader = new THREE.TextureLoader();
-loader.load(
-  COVER_URL,
-  (tex) => {
-    tex.colorSpace = THREE.SRGBColorSpace;
-    tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
-    mat.map = tex;
-    mat.emissiveMap = tex;
-    mat.emissiveIntensity = 0.45;
-    mat.needsUpdate = true;
-  },
-  undefined,
-  () => {
-    // no file yet → generate a washed-out pink placeholder
-    mat.map = makePlaceholderTexture();
-    mat.needsUpdate = true;
-  }
-);
+let coverToken = 0; // guards against a slow load landing after a fast arrow tap
 
-function makePlaceholderTexture() {
+function loadCover(track) {
+  const myToken = ++coverToken;
+  loader.load(
+    track.cover,
+    (tex) => {
+      if (myToken !== coverToken) return; // user already moved on
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      mat.map = tex;
+      mat.emissiveMap = tex;
+      mat.emissiveIntensity = 0.45;
+      mat.needsUpdate = true;
+    },
+    undefined,
+    () => {
+      if (myToken !== coverToken) return;
+      // no file yet → generate a washed-out placeholder in the track's hue
+      mat.map = makePlaceholderTexture(track.title, track.theme);
+      mat.emissiveMap = null;
+      mat.needsUpdate = true;
+    }
+  );
+}
+
+function makePlaceholderTexture(label, theme) {
   const c = document.createElement('canvas');
   c.width = c.height = 1024;
   const x = c.getContext('2d');
   const g = x.createRadialGradient(512, 440, 60, 512, 512, 760);
-  g.addColorStop(0, '#ffd9ec');
-  g.addColorStop(0.4, '#e85b9c');
-  g.addColorStop(1, '#5e1230');
+  g.addColorStop(0, theme.haze);
+  g.addColorStop(0.4, theme.pink);
+  g.addColorStop(1, theme.bgGlow);
   x.fillStyle = g;
   x.fillRect(0, 0, 1024, 1024);
   // motion-blur streaks
@@ -191,7 +231,7 @@ function makePlaceholderTexture() {
   x.font = '300 84px Helvetica, Arial, sans-serif';
   x.textAlign = 'center';
   x.filter = 'blur(2px)';
-  x.fillText('loveless', 512, 540);
+  x.fillText(label, 512, 540);
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   return tex;
@@ -288,7 +328,7 @@ setTimeout(() => hint.style.opacity = '', 1400);
 //   first time -> start (fades in);  while playing -> stop the music
 function onPageInteract(e) {
   if (e.button && e.button !== 0) return; // left-click / tap only (right-click = troll)
-  if (e.target.closest && (e.target.closest('a') || e.target.closest('.sound'))) return;
+  if (e.target.closest && (e.target.closest('a') || e.target.closest('.sound') || e.target.closest('.nav'))) return;
   if (isPlaying()) stopMusic();
   else playMusic();
 }
@@ -300,6 +340,64 @@ soundBtn.addEventListener('click', (e) => {
   if (isPlaying()) stopMusic();
   else playMusic();
 });
+
+/* ------------------------------------------------------------------ *
+ *  PLAYLIST NAVIGATION — left / right arrows step through TRACKS
+ * ------------------------------------------------------------------ */
+const prevBtn = document.getElementById('prev');
+const nextBtn = document.getElementById('next');
+const titleEl = document.getElementById('track-title');
+
+function applyTheme(theme) {
+  // CSS palette (text glow, background, arrows…)
+  const root = document.documentElement.style;
+  root.setProperty('--pink', theme.pink);
+  root.setProperty('--haze', theme.haze);
+  root.setProperty('--bg', theme.bg);
+  root.setProperty('--bg-glow', theme.bgGlow);
+  // 3D scene colors
+  baseSphere.material.color.setHex(theme.base);
+  baseSphere.material.emissive.setHex(theme.baseEmissive);
+  haloMat.color.setHex(theme.halo);
+  key.color.setHex(theme.key);
+  mat.emissive.setHex(theme.matEmissive);
+}
+
+function goToTrack(i, { initial = false } = {}) {
+  trackIndex = (i + TRACKS.length) % TRACKS.length;
+  const t = TRACKS[trackIndex];
+
+  applyTheme(t.theme);
+  loadCover(t);
+  if (titleEl) titleEl.innerHTML =
+    `<span class="t-song">${t.title}</span><span class="t-artist">${t.artist}</span>`;
+
+  // only show an arrow when there's somewhere to go that direction
+  prevBtn.classList.toggle('hidden', trackIndex === 0);
+  nextBtn.classList.toggle('hidden', trackIndex === TRACKS.length - 1);
+
+  // swap the audio source; keep playing across songs if we already were
+  if (!initial) {
+    const wasPlaying = isPlaying();
+    track.src = t.audio;
+    track.load();
+    if (wasPlaying) {
+      track.volume = 0;
+      track.play()
+        .then(() => fadeTo(TARGET_VOLUME, 2.5))
+        .catch(() => {});
+    }
+  }
+}
+
+function stopBubble(e) { e.stopPropagation(); } // don't trigger page play/stop
+prevBtn.addEventListener('pointerdown', stopBubble);
+nextBtn.addEventListener('pointerdown', stopBubble);
+prevBtn.addEventListener('click', (e) => { e.stopPropagation(); goToTrack(trackIndex - 1); });
+nextBtn.addEventListener('click', (e) => { e.stopPropagation(); goToTrack(trackIndex + 1); });
+
+// initial paint: load cover, theme + title for the first song
+goToTrack(0, { initial: true });
 
 /* ------------------------------------------------------------------ *
  *  POINTER PARALLAX (subtle)

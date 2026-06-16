@@ -1,10 +1,11 @@
 :root {
-  /* loveless palette — washed magenta / pink glare */
+  /* loveless palette — washed magenta / pink glare (swapped per song in JS) */
   --pink: #e85b9c;
   --magenta: #c02f6e;
   --haze: #ffd9ec;
   --ink: #f7e9f1;
   --bg: #1a0610;
+  --bg-glow: #3a0c22;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -13,8 +14,9 @@ html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: radial-gradient(ellipse at 50% 40%, #3a0c22 0%, var(--bg) 70%);
+  background: radial-gradient(ellipse at 50% 40%, var(--bg-glow) 0%, var(--bg) 70%);
   color: var(--ink);
+  transition: background 1.2s ease;
   font-family: ui-sans-serif, system-ui, "Helvetica Neue", Arial, sans-serif;
   cursor: default;
 }
@@ -157,7 +159,72 @@ html, body {
 .sound.muted .sound-on { display: none; }
 .sound.muted .sound-off { display: inline; }
 
+/* now-showing song title (top center) */
+.track-title {
+  position: fixed;
+  top: 7%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 8;
+  text-align: center;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.track-title .t-song {
+  font-weight: 300;
+  font-size: clamp(1.1rem, 3.2vw, 1.7rem);
+  letter-spacing: 0.34em;
+  text-transform: lowercase;
+  text-shadow: 0 0 22px var(--pink);
+}
+.track-title .t-artist {
+  font-size: 0.64rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+/* playlist arrows (prev / next song) */
+.nav {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 217, 236, 0.06);
+  border: 1px solid rgba(255, 217, 236, 0.22);
+  color: var(--ink);
+  font-size: 1.5rem;
+  line-height: 1;
+  border-radius: 999px;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: border-color 0.3s ease, background 0.3s ease,
+              opacity 0.4s ease, transform 0.3s ease;
+}
+.nav:hover {
+  border-color: var(--pink);
+  background: rgba(232, 91, 156, 0.14);
+  box-shadow: 0 0 18px rgba(232, 91, 156, 0.4);
+}
+.nav-prev { left: 22px; }
+.nav-next { right: 22px; }
+.nav.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
 @media (max-width: 640px) {
   .about { bottom: 12%; }
   .links { gap: 1.1rem; }
+  .nav { width: 42px; height: 42px; font-size: 1.3rem; }
+  .nav-prev { left: 10px; }
+  .nav-next { right: 10px; }
+  .track-title { top: 5%; }
 }
