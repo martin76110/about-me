@@ -9,6 +9,10 @@ left/right arrows to flip between songs. Each song needs a cover + an audio file
     little-dipper.jpg   — album cover art (square)
     little-dipper.mp3   — audio track (loops)
 
+  SONG 3 — "cuando respiro en tu boca" (lucybell)
+    cuando-respiro.jpg  — album cover art (square)
+    cuando-respiro.mp3  — audio track (loops)
+
 Until a cover .jpg exists, that song shows a tinted placeholder cover.
 Until an .mp3 exists, the visuals run silently for that song (no error).
 

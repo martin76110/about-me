@@ -41,6 +41,18 @@ const TRACKS = [
       halo: 0x5b9ce8, key: 0x8ec4ff, matEmissive: 0x5b9ce8,
     },
   },
+  {
+    id: 'cuando-respiro',
+    title: 'cuando respiro en tu boca',
+    artist: 'lucybell',
+    cover: 'assets/cuando-respiro.jpg',
+    audio: 'assets/cuando-respiro.mp3',
+    theme: {
+      pink: '#9c5be8', haze: '#ecd9ff', bgGlow: '#220c3a', bg: '#100618',
+      base: 0x180a2a, baseEmissive: 0x3a1a6e,
+      halo: 0x9c5be8, key: 0xc48eff, matEmissive: 0x9c5be8,
+    },
+  },
 ];
 let trackIndex = 0; // which song is showing
 
