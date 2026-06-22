@@ -11,6 +11,11 @@ const FADE_SECONDS = 8;                     // how long the volume ramp lasts
 const TARGET_VOLUME = 1.0;                   // final "actual sound level"
 const SPIN_SPEED  = 0.07;                    // radians/sec around Y (idle, no music)
 
+// Last.fm now-playing — get a free API key at https://www.last.fm/api/account/create
+const LASTFM_USER    = 'madcit0';
+const LASTFM_API_KEY = '';       // ← paste your key here
+const LASTFM_POLL_MS = 30_000;  // refresh interval
+
 /* ------------------------------------------------------------------ *
  *  THE PLAYLIST — flip between songs with the on-screen arrows.
  *  Each entry brings its own cover, audio file and color theme; drop
@@ -475,6 +480,32 @@ function tick() {
   requestAnimationFrame(tick);
 }
 tick();
+
+/* ------------------------------------------------------------------ *
+ *  LAST.FM NOW-PLAYING
+ * ------------------------------------------------------------------ */
+async function fetchNowPlaying() {
+  const el = document.getElementById('now-playing');
+  if (!el || !LASTFM_API_KEY) return;
+  try {
+    const res = await fetch(
+      `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks` +
+      `&user=${LASTFM_USER}&api_key=${LASTFM_API_KEY}&format=json&limit=1`
+    );
+    if (!res.ok) return;
+    const { recenttracks } = await res.json();
+    const t = recenttracks?.track?.[0];
+    if (!t) return;
+    const live   = t['@attr']?.nowplaying === 'true';
+    const name   = t.name;
+    const artist = t.artist['#text'];
+    const dot    = `<span class="np-dot${live ? '' : ' paused'}" aria-hidden="true"></span>`;
+    el.innerHTML = `${dot}${name} — ${artist}`;
+  } catch { /* network/parse error — stay silent */ }
+}
+
+fetchNowPlaying();
+setInterval(fetchNowPlaying, LASTFM_POLL_MS);
 
 /* ------------------------------------------------------------------ *
  *  RESIZE

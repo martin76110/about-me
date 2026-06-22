@@ -113,6 +113,35 @@ html, body {
   font-style: italic;
   opacity: 0.65;
 }
+.now-playing {
+  margin-top: 0.55rem;
+  font-size: 0.70rem;
+  letter-spacing: 0.15em;
+  opacity: 0.72;
+  min-height: 1em;
+  transition: opacity 0.4s ease;
+}
+.now-playing:empty { opacity: 0; }
+.np-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--pink);
+  box-shadow: 0 0 7px var(--pink);
+  margin-right: 0.4em;
+  vertical-align: middle;
+  animation: np-blink 1.8s ease-in-out infinite;
+}
+.np-dot.paused {
+  animation: none;
+  opacity: 0.4;
+  box-shadow: none;
+}
+@keyframes np-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.25; }
+}
 .links {
   margin-top: 1.1rem;
   display: flex;
