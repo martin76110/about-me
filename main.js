@@ -10,7 +10,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 const FADE_SECONDS = 8;                     // how long the volume ramp lasts
 const TARGET_VOLUME = 1.0;                   // final "actual sound level"
 const SPIN_SPEED  = 0.07;                    // radians/sec around Y (idle, no music)
-
+const LASTFM_API_KEY = '8eb2270da96d21c450756ad737502a83';
 /* ------------------------------------------------------------------ *
  *  THE PLAYLIST — flip between songs with the on-screen arrows.
  *  Each entry brings its own cover, audio file and color theme; drop
